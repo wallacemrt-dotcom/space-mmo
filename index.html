@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Space MMO 3D</title>
+
+<style>
+body {
+  margin: 0;
+  overflow: hidden;
+  background: black;
+  font-family: Inter, sans-serif;
+  color: white;
+}
+
+/* HUD */
+#hud {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  font-size: 14px;
+  background: rgba(0,0,0,0.5);
+  padding: 10px;
+  border-radius: 8px;
+}
+
+/* Controles Mobile */
+#mobileControls {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+}
+
+.btn {
+  width: 60px;
+  height: 60px;
+  background: rgba(255,255,255,0.1);
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  color: white;
+  font-size: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="hud">
+  Vida: <span id="hp">100</span><br>
+  Ranking: <span id="rank">1000</span><br>
+  Honra: <span id="honor">0</span>
+</div>
+
+<!-- Controles Mobile -->
+<div id="mobileControls">
+  <button class="btn" id="up">↑</button>
+  <div class="row">
+    <button class="btn" id="left">←</button>
+    <button class="btn" id="down">↓</button>
+    <button class="btn" id="right">→</button>
+  </div>
+</div>
+
+<script type="module">
+
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+
+let scene = new THREE.Scene();
+scene.background = new THREE.Color(0x000015);
+
+let camera = new THREE.PerspectiveCamera(
+  75,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  10000
+);
+
+let renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// Luz
+const light = new THREE.DirectionalLight(0xffffff, 1);
+light.position.set(10, 20, 10);
+scene.add(light);
+
+// Mapa
+const mapSize = 2000;
+const floorGeometry = new THREE.PlaneGeometry(mapSize, mapSize);
+const floorMaterial = new THREE.MeshStandardMaterial({
+  color: 0x050530,
+  side: THREE.DoubleSide
+});
+const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+floor.rotation.x = Math.PI / 2;
+scene.add(floor);
+
+// Nave
+const shipGeometry = new THREE.ConeGeometry(5, 20, 16);
+const shipMaterial = new THREE.MeshStandardMaterial({ color: 0x00ccff });
+const ship = new THREE.Mesh(shipGeometry, shipMaterial);
+ship.rotation.x = Math.PI / 2;
+ship.position.set(0, 10, 0);
+scene.add(ship);
+
+let player = {
+  speed: 1.5,
+  hp: 100,
+  ranking: 1000,
+  honor: 0
+};
+
+let keys = {};
+
+// PC Controls
+document.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
+document.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
+
+// Mobile Controls
+function setupMobileButton(id, key) {
+  const btn = document.getElementById(id);
+  btn.addEventListener("touchstart", () => keys[key] = true);
+  btn.addEventListener("touchend",
